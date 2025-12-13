@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+　<link rel="icon" href="icon.png">
+　<link rel="apple-touch-icon" href="icon.png">
+
+    <title>還付金詐欺体験ゲーム</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2em; background: #f9f9f9; font-size: 4vw;}
+    button { margin: 1em; padding: 1em 2em; font-size: 4.5vw; }
+    button {
+  display: block;
+  width: 80%;
+  margin: 1em auto;
+}
+    #story, #nextBtn, #warning { display: none; margin-top: 2em; }
+    #warning { color: red; font-weight: bold; }
+    body.alert {
+  background-color: #ffdddd;
+  color: #660000;
+  transition: background-color 0.5s, color 0.5s;
+}
+ </style>
+</head>
+<body>
+  <audio id="ringtone" src="ringtone.mp3" loop></audio>
+  <h1>📞 詐欺電話体験ゲーム：還付金編</h1>
+ 
+ <button id="startButton" onclick="playRingtone()">🔔 ゲームを開始する（電話が鳴ります）</button>
+
+ <p id="callMessage" style="display: none;">電話がかかってきました。どうしますか？</p>
+ 
+<div id="choices" style="display: none;">
+  <button onclick="stopRingtone(); startScam()">① 話を聞く</button>
+  <button onclick="stopRingtone(); showSafe()">② 電話を切る</button>
+  <button onclick="stopRingtone(); showSafe()">③ 家族に相談する</button>
+</div>
+
+  <div id="story">
+    <p id="line"></p>
+    <button id="nextBtn" onclick="nextLine()">▶ 次へ</button>
+  </div>
+
+  <p id="warning"></p>
+
+  <script>
+   function playRingtone() {
+  const ringtone = document.getElementById("ringtone");
+  ringtone.play().catch((e) => {
+    console.log("音声の再生がブロックされました:", e);
+  });
+
+  // メッセージと選択肢を表示
+  document.getElementById("callMessage").style.display = "block";
+  document.getElementById("choices").style.display = "block";
+
+    // 「ゲームを開始する」ボタンを非表示に
+ document.getElementById("startButton").style.display = "none";
+}
+ 
+    const lines = [
+  { display: "こちら、栄区役所の保険課です。", speak: "こちら、さかえ区役所の保険課です。" },
+  { display: "昨年の医療費の一部が還付対象になっておりまして、3万2千円ほど戻る予定です。", speak: "昨年の医療費の一部が還付対象になっておりまして、3万2千円ほど戻る予定です。" },
+  { display: "今日中に手続きすれば、すぐに振り込まれます。", speak: "きょうじゅうに手続きすれば、すぐに振り込まれます。" },
+  { display: "お近くのATMに行っていただければ、職員が電話で操作をサポートします。", speak: "お近くのATMに行っていただければ、職員が電話で操作をサポートします。" },
+  { display: "ATMの“振込”を押して…そのまま進んでください。", speak: "ATMの振込を押して、そのまま進んでください。" },
+  { display: "🛑 これは詐欺です！区役所がATMでの手続きを求めることは絶対にありません。", speak: "これは詐欺です。区役所がATMでの手続きを求めることは絶対にありません。" },
+  { display: "✅ 不審な電話が来たら、いったん切って、区役所や家族に確認しましょう。", speak: "不審な電話が来たら、いったん切って、区役所や家族に確認しましょう。" }
+];
+
+    let currentLine = 0;
+
+    function speak(text) {
+      const uttr = new SpeechSynthesisUtterance(text);
+      uttr.lang = "ja-JP";
+      speechSynthesis.speak(uttr);
+    }
+
+function stopRingtone() {
+  const ringtone = document.getElementById("ringtone");
+  ringtone.pause();
+  ringtone.currentTime = 0;
+}
+
+   function startScam() {
+  currentLine = 0;
+  document.getElementById("warning").textContent = "";
+  document.getElementById("warning").style.display = "none";
+  document.body.classList.remove("alert");
+
+   document.getElementById("story").style.display = "block";
+  document.getElementById("line").textContent = lines[currentLine].display;
+  speak(lines[currentLine].speak);
+  document.getElementById("nextBtn").style.display = "inline-block";
+}
+
+   function nextLine() {
+  currentLine++;
+  if (currentLine < lines.length) {
+    document.getElementById("line").textContent = lines[currentLine].display;
+    speak(lines[currentLine].speak);
+    if (currentLine === 5) {
+      document.getElementById("warning").textContent = "⚠️ あなたのお金が犯人の口座に振り込まれてしまう危険があります！";
+     document.getElementById("warning").style.display = "block";
+     document.body.classList.add("alert");
+    }
+  } else {
+    document.getElementById("nextBtn").style.display = "none";
+　　document.getElementById("restartBtn").style.display = "block"; // ← 追加！　　
+  }
+}
+
+    function showSafe() {
+  document.getElementById("story").style.display = "block";
+  document.getElementById("line").textContent = "冷静な判断です！詐欺被害を防ぎました。";
+  speak("冷静な判断です！詐欺被害を防ぎました。");
+
+  // 「次へ」ボタンを非表示にする
+  document.getElementById("nextBtn").style.display = "none";
+　document.getElementById("restartBtn").style.display = "block"; // ← 追加！
+}
+
+　　function restartGame() {
+  // 状態をリセット
+  currentLine = 0;
+  document.getElementById("line").textContent = "";
+  document.getElementById("story").style.display = "none";
+  document.getElementById("warning").textContent = "";
+  document.getElementById("warning").style.display = "none";
+  document.body.classList.remove("alert");
+
+  // 選択肢と再生ボタンを再表示
+  document.getElementById("callMessage").style.display = "none";
+  document.getElementById("choices").style.display = "none";
+  document.getElementById("startButton").style.display = "block";
+  document.getElementById("restartBtn").style.display = "none";
+}
+  </script>
+
+　<button id="restartBtn" style="display: none;" onclick="restartGame()">🔁 もう一度プレーする</button>
+</body>
+</html>
